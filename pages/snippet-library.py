@@ -3,7 +3,7 @@ import time
 from datetime import datetime
 from controller.codeRunner import default_code, run_python_code,run_streamlit_code, run_javascript_code, run_cpp_code, run_java_code, run_c_code, run_html_code, run_sql_code, run_typescript_code
 import sqlite3
-from code_editor import code_editor
+from streamlit_monaco import st_monaco
 # Initialize SQLite database
 def init_db():
     conn = sqlite3.connect('snippets.db')
@@ -116,151 +116,24 @@ def coderunnerComponent():
         languages = ["Python","Streamlit", "JavaScript", "C++", "Java", "C", "HTML", "SQL", "TypeScript"]
         selected_language = st.selectbox("Select Language", languages)
         # code = st.text_area("Write your code here:", height=300, value=default_code[selected_language], key="code_input")
-        
-        custom_btns = [
-                    {
-                        "name": "Copy",
-                        "feather": "Copy",
-                        "hasText": True,
-                        "alwaysOn": True,
-                        "commands": [
-                        "copyAll",
-                        [
-                            "infoMessage",
-                            {
-                            "text": "Copied to clipboard!",
-                            "timeout": 2500,
-                            "classToggle": "show"
-                            }
-                        ]
-                        ],
-                        "style": {
-                        "top": "-0.25rem",
-                        "right": "0.4rem"
-                        }
-                    },
-                    {
-                        "name": "Shortcuts",
-                        "feather": "Type",
-                        "class": "shortcuts-button",
-                        "hasText": True,
-                        "commands": [
-                        "toggleKeyboardShortcuts",
-                        [
-                            "conditionalExecute",
-                            {
-                            "targetQueryString": "#kbshortcutmenu",
-                            "condition": True,
-                            "command": [
-                                "infoMessage",
-                                {
-                                "text": "VSCode keyboard shortcuts",
-                                "timeout": 2500,
-                                "classToggle": "show"
-                                }
-                            ]
-                            }
-                        ]
-                        ],
-                        "style": {
-                        "bottom": "calc(50% + 1.75rem)",
-                        "right": "0.4rem"
-                        }
-                    },
-                    {
-                        "name": "Collapse",
-                        "feather": "Minimize2",
-                        "hasText": True,
-                        "commands": [
-                        "selectall",
-                        "toggleSplitSelectionIntoLines",
-                        "gotolinestart",
-                        "gotolinestart",
-                        "backspace"
-                        ],
-                        "style": {
-                        "bottom": "calc(50% - 1.25rem)",
-                        "right": "0.4rem"
-                        }
-                    },
-                    {
-                        "name": "Save",
-                        "feather": "Save",
-                        "hasText": True,
-                        "commands": [
-                        "save-state",
-                        [
-                            "response",
-                            "saved"
-                        ]
-                        ],
-                        "response": "saved",
-                        "style": {
-                        "bottom": "calc(50% - 4.25rem)",
-                        "right": "0.4rem"
-                        }
-                    },
-                    {
-                        "name": "Run",
-                        "feather": "Play",
-                        "primary": True,
-                        "hasText": True,
-                        "showWithIcon": True,
-                        "commands": [
-                        "submit"
-                        ],
-                        "style": {
-                        "bottom": "0.44rem",
-                        "right": "0.4rem"
-                        }
-                    },
-                    {
-                        "name": "Command",
-                        "feather": "Terminal",
-                        "primary": True,
-                        "hasText": True,
-                        "commands": [
-                        "openCommandPallete"
-                        ],
-                        "style": {
-                        "bottom": "3.5rem",
-                        "right": "0.4rem"
-                        }
-                    }
-                    ]
-        info_bar = {
-                    "name": "language info",
-                    "css": "\nbackground-color: #bee1e5;\n\nbody > #root .ace-streamlit-dark~& {\n   background-color: #262830;\n}\n\n.ace-streamlit-dark~& span {\n   color: #fff;\n    opacity: 0.6;\n}\n\nspan {\n   color: #000;\n    opacity: 0.5;\n}\n\n.code_editor-info.message {\n    width: inherit;\n    margin-right: 75px;\n    order: 2;\n    text-align: center;\n    opacity: 0;\n    transition: opacity 0.7s ease-out;\n}\n\n.code_editor-info.message.show {\n    opacity: 0.6;\n}\n\n.ace-streamlit-dark~& .code_editor-info.message.show {\n    opacity: 0.5;\n}\n",
-                    "style": {
-                        "order": "1",
-                        "display": "flex",
-                        "flexDirection": "row",
-                        "alignItems": "center",
-                        "width": "100%",
-                        "height": "2.5rem",
-                        "padding": "0rem 0.6rem",
-                        "padding-bottom": "0.2rem",
-                        "margin-bottom": "-1px",
-                        "borderRadius": "8px 8px 0px 0px",
-                        "zIndex": "9993"
-                    },
-                    "info": [
-                        {
-                        "name": "code editor",
-                        "style": {
-                            "width": "100px"
-                        }
-                        }
-                    ]
-                    }
         if selected_language.lower()=='streamlit':
             lang='python'
         else:
             lang=selected_language.lower()
-        response_dict = code_editor(default_code[selected_language], lang=lang, height=[19, 22],info=info_bar, buttons=custom_btns)
+        content = st_monaco(value=default_code[selected_language], height="600px", language=lang,lineNumbers=True,minimap=False,theme="vs-dark")
+        # response_dict = code_editor(default_code[selected_language], lang=lang, height=[19, 22],info=info_bar, buttons=custom_btns)
         # Display the edited code if the user submits changes
-        if response_dict['type'] == "submit" and response_dict['text']:
-            code=response_dict['text']
+        btncol1, btncol2, btncol3, btncol4 = st.columns([0.5, 2, 1, 0.7])
+        with btncol1:
+            run_code = st.button("Run", icon=":material/play_arrow:")
+        with btncol4:
+            add_snippet = st.button("Add to library", icon=":material/add_circle_outline:")
+    
+        # Handle snippet saving
+        if add_snippet:
+            addSnippet(lang=selected_language,code=code)    
+        if run_code:
+            code=content
             st.subheader("Output")
             output, error = "", ""
             
@@ -288,16 +161,7 @@ def coderunnerComponent():
             elif output:
                 st.code(output, language="text")
             if error:
-                st.error(error)
-
-        btncol1, btncol2, btncol3, btncol4 = st.columns([0.5, 2, 1, 0.7])
-
-        with btncol4:
-            add_snippet = st.button("Add to library", icon=":material/add_circle_outline:")
-    
-        # Handle snippet saving
-        if add_snippet:
-            addSnippet(lang=selected_language,code=code)           
+                st.error(error)        
 
 
 
