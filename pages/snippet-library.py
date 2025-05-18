@@ -241,19 +241,20 @@ def snippetLibrary():
                         with col:
                             with st.container(border=True):
                                 # {updateDailog(snippet['id'],  snippet['language'],snippet['code'], snippet['tags'],snippet['title'])}s
-                                st.markdown(f"""<div style="display:flex;justify-content:space-between;align-items: center;">
-                                            <div style="margin-right:auto"><strong>{snippet['title']}</strong></div>
-                                            """,unsafe_allow_html=True)
+
                                 left,middle,right1,right2=st.columns([0.4,0.2,0.1,0.1])
-                                badges=""
-                                for tag in (snippet['tags'] or '').split(','):
-                                    badges+=f":green-badge[:material/tag: {tag.strip()}] "
-                                left.markdown(badges)
+                                left.markdown(f":green[**Snippet #{snippet['id']}**]")
                                 if right1.button(":material/edit:",key="editbtn_"+str(snippet['id']),help="Edit Snippet"):
                                     updateDailog(snippet['id'],  snippet['language'],snippet['code'], snippet['tags'],snippet['title'])
                                 if right2.button(":material/delete:",key="deletebtn_"+str(snippet['id']),help="Delete Snippet"):
                                     deleteDailog(snippet['id'])
-                                
+                                st.markdown(f"""<div style="display:flex;justify-content:space-between;align-items: center;">
+                                            <div style="margin-right:auto"><strong>{snippet['title']}</strong></div>
+                                            """,unsafe_allow_html=True)
+                                badges=""
+                                for tag in (snippet['tags'] or '').split(','):
+                                    badges+=f":green-badge[:material/tag: {tag.strip()}] "
+                                st.markdown(badges)
                                 with st.expander(snippet['language'].upper(),expanded=True):
                                     if snippet['language'].lower()=="streamlit":
                                         st.code(snippet['code'],language='python',height=200)
