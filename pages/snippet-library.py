@@ -131,7 +131,7 @@ def coderunnerComponent():
     
         # Handle snippet saving
         if add_snippet:
-            addSnippet(lang=selected_language,code=code)    
+            addSnippet(lang=selected_language,code=content)    
         if run_code:
             code=content
             st.subheader("Output")
